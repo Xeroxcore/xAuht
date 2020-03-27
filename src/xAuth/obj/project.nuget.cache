@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "LuDg8O2N2IY/wzsEeSVyyuu75t0x2jslc+1Y8u5ya0A6nkn8vPJEBjnJ9cQ6yNjrEUI6d/+MbpVZKueCpaBjAA==",
+  "success": true,
+  "projectFilePath": "/home/nasareddaoui/mcs/git/xAuht/src/xAuth/xAuth.csproj",
+  "expectedPackageFiles": [
+    "/home/nasareddaoui/.nuget/packages/microsoft.netcore.platforms/1.1.0/microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "/home/nasareddaoui/.nuget/packages/netstandard.library/2.0.3/netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
