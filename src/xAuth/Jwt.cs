@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -14,8 +16,8 @@ namespace xAuth
         private string Algorithm { get; }
         public Jwt(string encryptionKey, string algorithm)
         {
-
             ConstructorParametersAreValid(encryptionKey, algorithm);
+            Algorithm = algorithm;
             EncryptionKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(encryptionKey));
         }
@@ -28,7 +30,7 @@ namespace xAuth
 
             if (string.IsNullOrWhiteSpace(algorithm))
                 throw new Exception(
-                    "Your have provided an algorithm is null or empty");
+                    "Your have provided an algorithm that is null or empty");
         }
 
         private string CreateRefreshToken()
@@ -44,24 +46,39 @@ namespace xAuth
         private SigningCredentials CreateSigningCredentials()
             => new SigningCredentials(EncryptionKey, Algorithm);
 
-        private object CreateToken(JwtSecurityToken token)
+        private ITokenRespons CreateToken(JwtSecurityToken token)
         {
-            return new
+            return new TokenRespons()
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                tokenType = "Bearer",
-                expiration = $"UTC{token.ValidTo}",
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                TokenType = "Bearer",
+                Expiration = $"UTC{token.ValidTo}",
                 refreshToken = CreateRefreshToken()
             };
         }
 
-        public virtual object CreateJwtToken()
+        public virtual ITokenRespons CreateJwtToken(List<Claim> claim, string audiance, string issuer)
         {
-            var token = new JwtSecurityToken()
+            try
             {
+                var token = new JwtSecurityToken(
+                              issuer: issuer,
+                              audience: audiance,
+                              expires: DateTime.Now.AddMinutes(15),
+                              claims: claim,
+                              signingCredentials: CreateSigningCredentials()
+                           );
+                return CreateToken(token);
+            }
+            catch
+            {
+                throw;
+            }
+        }
 
-            };
-            throw new System.NotImplementedException();
+        public object CreateJwtToken()
+        {
+            throw new NotImplementedException();
         }
     }
 }
