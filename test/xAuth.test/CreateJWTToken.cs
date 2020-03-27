@@ -3,11 +3,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace xAuth.test
 {
     [TestClass]
-    public class UnitTest1
+    public class CreateJWTToken
     {
         [TestMethod]
-        public void TestMethod1()
+        public void CreateToken()
         {
+
         }
     }
 }
