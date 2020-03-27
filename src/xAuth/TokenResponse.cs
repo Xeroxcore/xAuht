@@ -1,4 +1,3 @@
-using System;
 using xAuth.Interface;
 
 namespace xAuth

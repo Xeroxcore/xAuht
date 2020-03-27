@@ -1,5 +1,3 @@
-using System;
-
 namespace xAuth.Interface
 {
     public interface IUser

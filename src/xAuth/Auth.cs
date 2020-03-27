@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace xAuth
+﻿namespace xAuth
 {
-    public class Auth
+    public class Auth : IAuth
     {
 
     }
