@@ -1,0 +1,35 @@
+CREATE USER testuser WITH
+    LOGIN
+    NOSUPERUSER
+    NOCREATEDB
+    NOCREATEROLE
+    INHERIT
+    NOREPLICATION
+    CONNECTION LIMIT -1
+    PASSWORD 'helloword';
+
+CREATE DATABASE testdb
+    WITH 
+    OWNER = testuser
+    ENCODING = 'UTF8'
+    CONNECTION LIMIT = -1;
+
+CREATE TABLE useraccount (
+	id serial not null primary key,
+	username varchar(250) not null,
+	password varchar(250) not null,
+	lockout int not null default 0,
+	lockexpire timestamp,
+	constraint username unique (username)
+);
+
+CREATE TABLE tokenkey (
+	id serial not null primary key,
+	token varchar(250) not null,
+	lockout int not null default 0,
+	lockexpire timestamp,
+	constraint token unique (token)
+);
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO testuser;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO testuser;

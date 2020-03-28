@@ -8,7 +8,7 @@ namespace xAuth.test
         [TestMethod]
         public void CreateToken()
         {
-            var jwt = new Jwt("asdas1d31q51131#", "HS256");
+            var jwt = new JwtGenerator("asdas1d31q51131#", "HS256");
             var token = jwt.CreateJwtToken(null, "user", "testdomain.com");
             Assert.IsTrue(!string.IsNullOrWhiteSpace(token.Token));
         }

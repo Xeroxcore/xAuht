@@ -1,12 +1,15 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using xAuth.Interface;
+using xSql;
 
 namespace xAuth.test
 {
     [TestClass]
     public class AuthenticationTest
     {
-        private IAuth Authentication = new Auth();
+        private readonly IAuth Authentication = new Auth(
+            new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
+            new JwtGenerator("asdas1d31q51131#", "HS256"));
 
         [TestMethod]
         public void AuthenticateUser()
@@ -16,7 +19,7 @@ namespace xAuth.test
                 UserName = "Nasar",
                 Password = "helloworld"
             };
-            var token = Authentication.AuthentiacteUser(user);
+            var token = Authentication.AuthentiacteUser(user, "user", "localhost");
             Assert.IsTrue(!string.IsNullOrWhiteSpace(token.Token));
         }
 
@@ -27,7 +30,7 @@ namespace xAuth.test
             {
                 Token = "helloworld123key"
             };
-            var token = Authentication.AuthenticateTokenKey(user);
+            var token = Authentication.AuthenticateTokenKey(user, "tokenkey-", "localhost");
             Assert.IsTrue(!string.IsNullOrWhiteSpace(token.Token));
         }
     }

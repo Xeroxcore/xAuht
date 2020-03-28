@@ -9,11 +9,11 @@ using xAuth.Interface;
 
 namespace xAuth
 {
-    public class Jwt : IJwtGenerator
+    public class JwtGenerator : IJwtGenerator
     {
         private SymmetricSecurityKey EncryptionKey { get; }
         private string Algorithm { get; }
-        public Jwt(string encryptionKey, string algorithm)
+        public JwtGenerator(string encryptionKey, string algorithm)
         {
             ConstructorParametersAreValid(encryptionKey, algorithm);
             Algorithm = algorithm;
