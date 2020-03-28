@@ -6,8 +6,8 @@ namespace xAuth
 {
     public class Auth : IAuth
     {
-        private ISqlHelper Sql { get; }
-        private IJwtGenerator Jwt { get; }
+        protected ISqlHelper Sql { get; }
+        protected IJwtGenerator Jwt { get; }
         public Auth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator)
         {
             if (sqlHandler == null)
@@ -20,8 +20,7 @@ namespace xAuth
             Jwt = jwtGenerator;
         }
 
-
-        private void ThrowException(string text)
+        protected void ThrowException(string text)
             => throw new Exception(text);
 
         private void Unlock(ILockout lockout)
@@ -46,7 +45,7 @@ namespace xAuth
                 ThrowException($"User Authentication failed for {user.UserName}");
         }
 
-        public ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
+        public virtual ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
         {
             try
             {
@@ -70,7 +69,7 @@ namespace xAuth
                 ThrowException($"User Authentication failed for {token.Token}");
         }
 
-        public ITokenRespons AuthenticateTokenKey(IToken token, string audiance, string domain)
+        public virtual ITokenRespons AuthenticateTokenKey(IToken token, string audiance, string domain)
         {
             try
             {

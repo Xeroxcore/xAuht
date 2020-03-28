@@ -11,8 +11,8 @@ namespace xAuth
 {
     public class JwtGenerator : IJwtGenerator
     {
-        private SymmetricSecurityKey EncryptionKey { get; }
-        private string Algorithm { get; }
+        protected SymmetricSecurityKey EncryptionKey { get; }
+        protected string Algorithm { get; }
         public JwtGenerator(string encryptionKey, string algorithm)
         {
             ConstructorParametersAreValid(encryptionKey, algorithm);
