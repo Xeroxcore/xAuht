@@ -74,10 +74,5 @@ namespace xAuth
                 throw;
             }
         }
-
-        public object CreateJwtToken()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
