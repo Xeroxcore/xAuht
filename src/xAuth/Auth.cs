@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Components;
 using xAuth.Interface;
 using xSql.Interface;
 
@@ -23,37 +25,51 @@ namespace xAuth
         protected void ThrowException(string text)
             => throw new Exception(text);
 
+        protected T GetAuthFromDB<T>(string querry, T data)
+        {
+            var table = Sql.SelectQuery<T>(querry, (T)data);
+            if (table.Rows.Count < 1)
+                ThrowException("Value not found in DB");
+            return ObjectConverter.ConvertDataTableRowToObject<T>(table, 0);
+        }
+
         private void Unlock(ILockout lockout)
         {
             lockout.LockOut = 0;
             lockout.LockExpire = DateTime.Now.AddMinutes(-15);
-            Sql.AlterDataQuery("update useraccount set lockout = @lockout, lockexpire = @LockExpire where id = @Id", lockout);
+            Sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = @LockExpire where id = @Id", lockout);
         }
 
         private void IsLocked(ILockout lockout)
         {
             if (lockout.LockOut > 2)
-                if (DateTime.Now < lockout.LockExpire.AddMinutes(15))
+                if (lockout.LockExpire.AddMinutes(15) > DateTime.Now)
                     ThrowException($"Account has been locked please try again later");
                 else
                     Unlock(lockout);
         }
 
-        private void UserAccountIsValid(IUser dbuser, IUser user)
+        private void FailedAuthentication(ILockout lockout)
         {
-            if (dbuser.UserName != user.UserName && dbuser.Password != user.Password)
-                ThrowException($"User Authentication failed for {user.UserName}");
+            if (lockout.LockOut < 3)
+                Sql.AlterDataQuery<Lockout>("update useraccount set lockout = @LockOut where id = @Id", null);
+            else
+                Sql.AlterDataQuery<Lockout>("update useraccount set lockexpire = now() where id = @Id", null);
+        }
+
+        private void AccountIsValid(string passedValue, string dbValue)
+        {
+            if (passedValue != dbValue)
+                ThrowException($"Authentication failed for {passedValue}");
         }
 
         public virtual ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
         {
             try
             {
-                var account = Sql.SelectQuery<UserAccount>("select * from useraccount where username = @UserName", (UserAccount)user);
-                if (account == null)
-                    ThrowException("User not found");
-                UserAccountIsValid(user, user);
-                IsLocked(null);
+                var userdb = GetAuthFromDB("select * from getuser(@UserName)", (UserAccount)user);
+                IsLocked((Lockout)userdb);
+                AccountIsValid(userdb.UserName, user.UserName);
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 return tokenRespons;
             }
@@ -63,19 +79,13 @@ namespace xAuth
             }
         }
 
-        private void TokenKeyIsValid(IToken dbToken, IToken token)
-        {
-            if (dbToken.Token != token.Token)
-                ThrowException($"User Authentication failed for {token.Token}");
-        }
-
         public virtual ITokenRespons AuthenticateTokenKey(IToken token, string audiance, string domain)
         {
             try
             {
-                var account = Sql.SelectQuery<TokenKey>("select * from tokenkey where token = @Token", (TokenKey)token);
-                TokenKeyIsValid(token, token);
-                IsLocked(null);
+                var tokendb = GetAuthFromDB("select * from gettoken(@Token)", (TokenKey)token);
+                IsLocked((Lockout)tokendb);
+                AccountIsValid(tokendb.Token, token.Token);
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 return tokenRespons;
             }

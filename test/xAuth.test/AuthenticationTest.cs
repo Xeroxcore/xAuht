@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using xAuth.Interface;
 using xSql;
@@ -32,6 +33,24 @@ namespace xAuth.test
             };
             var token = Authentication.AuthenticateTokenKey(user, "tokenkey-", "localhost");
             Assert.IsTrue(!string.IsNullOrWhiteSpace(token.Token));
+        }
+
+        [TestMethod]
+        public void AccountIsBlocked()
+        {
+            try
+            {
+                IUser user = new UserAccount()
+                {
+                    UserName = "Nasar2",
+                    Password = "helloworld"
+                };
+                var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("", error.Message);
+            }
         }
     }
 }
