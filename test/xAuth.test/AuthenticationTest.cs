@@ -22,7 +22,7 @@ namespace xAuth.test
                 Password = "helloworld"
             };
             var token = Authentication.AuthentiacteUser(user, "user", "localhost");
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(token.Token));
+            Assert.IsTrue(token.Token.Length > 10);
         }
 
         [TestMethod]
@@ -33,7 +33,7 @@ namespace xAuth.test
                 Token = "helloworld123key"
             };
             var token = Authentication.AuthenticateTokenKey(user, "tokenkey-", "localhost");
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(token.Token));
+            Assert.IsTrue(token.Token.Length > 10);
         }
 
         [TestMethod]
@@ -70,8 +70,6 @@ namespace xAuth.test
             sql.AlterDataQuery("update useraccount set lockout = 2, lockexpire = now() Where username = @UserName", user);
             try
             {
-
-
                 var token = Authentication.AuthentiacteUser(user, "user", "localhost");
             }
             catch
@@ -80,6 +78,21 @@ namespace xAuth.test
                 var dbUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(table, 0);
                 Assert.AreEqual(3, dbUser.LockOut);
             }
+        }
+
+        [TestMethod]
+        public void UnLockAccount()
+        {
+            IUser user = new UserAccount()
+            {
+                UserName = "Nasar2",
+                Password = "helloworld",
+                LockExpire = DateTime.Now.AddMinutes(-30)
+            };
+            var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
+            sql.AlterDataQuery("update useraccount set lockout = 3, lockexpire = @LockExpire Where username = @UserName", user);
+            var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+            Assert.IsTrue(token.Token.Length > 10);
         }
     }
 }

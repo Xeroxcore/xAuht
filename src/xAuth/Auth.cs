@@ -42,7 +42,7 @@ namespace xAuth
 
         private void IsLocked(ILockout lockout)
         {
-            if (lockout.LockOut == AuthAthempts)
+            if (lockout.LockOut >= 3)
                 if (lockout.LockExpire.AddMinutes(15) > DateTime.Now)
                     ThrowException($"Account has been locked please try again later");
                 else
@@ -51,10 +51,10 @@ namespace xAuth
 
         private void FailedAuthentication(ILockout lockout)
         {
-            if (lockout.LockOut < AuthAthempts)
+            if (lockout.LockOut < 3)
                 lockout.LockOut += 1;
 
-            if (lockout.LockOut < AuthAthempts)
+            if (lockout.LockOut < 3)
                 Sql.AlterDataQuery<ILockout>("update useraccount set lockout = @LockOut where id = @Id", lockout);
             else
                 Sql.AlterDataQuery<ILockout>("update useraccount set lockout = @LockOut, lockexpire = now() where id = @Id", lockout);
