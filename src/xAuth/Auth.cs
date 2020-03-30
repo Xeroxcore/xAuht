@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Components;
 using xAuth.Interface;
 using xSql.Interface;
@@ -57,19 +56,17 @@ namespace xAuth
                 Sql.AlterDataQuery<Lockout>("update useraccount set lockexpire = now() where id = @Id", null);
         }
 
-        private void AccountIsValid(string passedValue, string dbValue)
-        {
-            if (passedValue != dbValue)
-                ThrowException($"Authentication failed for {passedValue}");
-        }
-
         public virtual ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
         {
             try
             {
                 var userdb = GetAuthFromDB("select * from getuser(@UserName)", (UserAccount)user);
-                IsLocked((Lockout)userdb);
-                AccountIsValid(userdb.UserName, user.UserName);
+                IsLocked(userdb);
+                if (userdb.UserName != user.UserName && userdb.Password != user.Password)
+                {
+                    FailedAuthentication(userdb);
+                    ThrowException($"Authentication failed for {user.UserName}");
+                }
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 return tokenRespons;
             }
@@ -84,8 +81,12 @@ namespace xAuth
             try
             {
                 var tokendb = GetAuthFromDB("select * from gettoken(@Token)", (TokenKey)token);
-                IsLocked((Lockout)tokendb);
-                AccountIsValid(tokendb.Token, token.Token);
+                IsLocked(tokendb);
+                if (tokendb.Token != token.Token)
+                {
+                    ThrowException($"Authentication failed for {token.Token}");
+                }
+
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 return tokenRespons;
             }

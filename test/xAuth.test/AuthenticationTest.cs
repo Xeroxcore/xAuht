@@ -40,11 +40,36 @@ namespace xAuth.test
         {
             try
             {
+
                 IUser user = new UserAccount()
                 {
                     UserName = "Nasar2",
-                    Password = "helloworld"
+                    Password = "helloworld",
+                    LockOut = 3,
                 };
+                var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
+                sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = now() Where username = @UserName", user);
+                var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("Account has been locked please try again later", error.Message);
+            }
+        }
+
+        [TestMethod]
+        public void LockAccount()
+        {
+            try
+            {
+                IUser user = new UserAccount()
+                {
+                    UserName = "Nasar2",
+                    Password = "helloworld2",
+                    LockOut = 2,
+                };
+                var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
+                sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = now() Where username = @UserName", user);
                 var token = Authentication.AuthentiacteUser(user, "user", "localhost");
             }
             catch (Exception error)
