@@ -9,6 +9,7 @@ namespace xAuth
     {
         protected ISqlHelper Sql { get; }
         protected IJwtGenerator Jwt { get; }
+        public int AuthAthempts = 3;
         public Auth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator)
         {
             if (sqlHandler == null)
@@ -41,7 +42,7 @@ namespace xAuth
 
         private void IsLocked(ILockout lockout)
         {
-            if (lockout.LockOut > 2)
+            if (lockout.LockOut == AuthAthempts)
                 if (lockout.LockExpire.AddMinutes(15) > DateTime.Now)
                     ThrowException($"Account has been locked please try again later");
                 else
@@ -50,10 +51,15 @@ namespace xAuth
 
         private void FailedAuthentication(ILockout lockout)
         {
-            if (lockout.LockOut < 3)
-                Sql.AlterDataQuery<Lockout>("update useraccount set lockout = @LockOut where id = @Id", null);
+            if (lockout.LockOut < AuthAthempts)
+                lockout.LockOut += 1;
+
+            if (lockout.LockOut < AuthAthempts)
+                Sql.AlterDataQuery<ILockout>("update useraccount set lockout = @LockOut where id = @Id", lockout);
             else
-                Sql.AlterDataQuery<Lockout>("update useraccount set lockexpire = now() where id = @Id", null);
+                Sql.AlterDataQuery<ILockout>("update useraccount set lockout = @LockOut, lockexpire = now() where id = @Id", lockout);
+
+
         }
 
         public virtual ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
@@ -62,7 +68,7 @@ namespace xAuth
             {
                 var userdb = GetAuthFromDB("select * from getuser(@UserName)", (UserAccount)user);
                 IsLocked(userdb);
-                if (userdb.UserName != user.UserName && userdb.Password != user.Password)
+                if (userdb.UserName != user.UserName || userdb.Password != user.Password)
                 {
                     FailedAuthentication(userdb);
                     ThrowException($"Authentication failed for {user.UserName}");
@@ -84,6 +90,7 @@ namespace xAuth
                 IsLocked(tokendb);
                 if (tokendb.Token != token.Token)
                 {
+                    FailedAuthentication(tokendb);
                     ThrowException($"Authentication failed for {token.Token}");
                 }
 

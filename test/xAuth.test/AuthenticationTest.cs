@@ -1,4 +1,5 @@
 using System;
+using Components;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using xAuth.Interface;
 using xSql;
@@ -60,21 +61,24 @@ namespace xAuth.test
         [TestMethod]
         public void LockAccount()
         {
+            IUser user = new UserAccount()
+            {
+                UserName = "Nasar2",
+                Password = "helloworld2",
+            };
+            var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
+            sql.AlterDataQuery("update useraccount set lockout = 2, lockexpire = now() Where username = @UserName", user);
             try
             {
-                IUser user = new UserAccount()
-                {
-                    UserName = "Nasar2",
-                    Password = "helloworld2",
-                    LockOut = 2,
-                };
-                var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
-                sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = now() Where username = @UserName", user);
+
+
                 var token = Authentication.AuthentiacteUser(user, "user", "localhost");
             }
-            catch (Exception error)
+            catch
             {
-                Assert.AreEqual("", error.Message);
+                var table = sql.SelectQuery("select * from getuser(@UserName)", user);
+                var dbUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(table, 0);
+                Assert.AreEqual(3, dbUser.LockOut);
             }
         }
     }
