@@ -9,7 +9,6 @@ namespace xAuth
     {
         protected ISqlHelper Sql { get; }
         protected IJwtGenerator Jwt { get; }
-        public int AuthAthempts = 3;
         public Auth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator)
         {
             if (sqlHandler == null)
@@ -33,33 +32,29 @@ namespace xAuth
             return ObjectConverter.ConvertDataTableRowToObject<T>(table, 0);
         }
 
-        private void Unlock(ILockout lockout)
+        private void Unlock(ILockout lockout, string type)
         {
-            lockout.LockOut = 0;
-            lockout.LockExpire = DateTime.Now.AddMinutes(-15);
-            Sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = @LockExpire where id = @Id", lockout);
+            if ("user" == type)
+                Sql.AlterDataQuery("call unlockaccount(@Id)", lockout);
+            else
+                Sql.AlterDataQuery("call unlocktoken(@Id)", lockout);
         }
 
-        private void IsLocked(ILockout lockout)
+        protected void IsLocked(ILockout lockout, string type)
         {
             if (lockout.LockOut >= 3)
                 if (lockout.LockExpire.AddMinutes(15) > DateTime.Now)
                     ThrowException($"Account has been locked please try again later");
                 else
-                    Unlock(lockout);
+                    Unlock(lockout, type);
         }
 
-        private void FailedAuthentication(ILockout lockout)
+        protected void FailedAuthentication(ILockout lockout, string type)
         {
-            if (lockout.LockOut < 3)
-                lockout.LockOut += 1;
-
-            if (lockout.LockOut < 3)
-                Sql.AlterDataQuery<ILockout>("update useraccount set lockout = @LockOut where id = @Id", lockout);
+            if ("user" == type.ToLower())
+                Sql.AlterDataQuery<ILockout>("call failduserauth(@Id)", lockout);
             else
-                Sql.AlterDataQuery<ILockout>("update useraccount set lockout = @LockOut, lockexpire = now() where id = @Id", lockout);
-
-
+                Sql.AlterDataQuery<ILockout>("call faildtokenauth(@Id)", lockout);
         }
 
         public virtual ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
@@ -67,10 +62,10 @@ namespace xAuth
             try
             {
                 var userdb = GetAuthFromDB("select * from getuser(@UserName)", (UserAccount)user);
-                IsLocked(userdb);
+                IsLocked(userdb, "user");
                 if (userdb.UserName != user.UserName || userdb.Password != user.Password)
                 {
-                    FailedAuthentication(userdb);
+                    FailedAuthentication(userdb, "user");
                     ThrowException($"Authentication failed for {user.UserName}");
                 }
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
@@ -87,10 +82,10 @@ namespace xAuth
             try
             {
                 var tokendb = GetAuthFromDB("select * from gettoken(@Token)", (TokenKey)token);
-                IsLocked(tokendb);
+                IsLocked(tokendb, "token");
                 if (tokendb.Token != token.Token)
                 {
-                    FailedAuthentication(tokendb);
+                    FailedAuthentication(tokendb, "token");
                     ThrowException($"Authentication failed for {token.Token}");
                 }
 

@@ -7,7 +7,7 @@ using xSql;
 namespace xAuth.test
 {
     [TestClass]
-    public class AuthenticationTest
+    public class AuthenticationUserTest
     {
         private readonly IAuth Authentication = new Auth(
             new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
@@ -22,17 +22,6 @@ namespace xAuth.test
                 Password = "helloworld"
             };
             var token = Authentication.AuthentiacteUser(user, "user", "localhost");
-            Assert.IsTrue(token.Token.Length > 10);
-        }
-
-        [TestMethod]
-        public void AuthenticateTokenKey()
-        {
-            IToken user = new TokenKey()
-            {
-                Token = "helloworld123key"
-            };
-            var token = Authentication.AuthenticateTokenKey(user, "tokenkey-", "localhost");
             Assert.IsTrue(token.Token.Length > 10);
         }
 

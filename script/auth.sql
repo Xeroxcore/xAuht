@@ -1,3 +1,5 @@
+/* PostgreSql script */
+
 CREATE USER testuser WITH
     LOGIN
     NOSUPERUSER
@@ -31,6 +33,8 @@ CREATE TABLE tokenkey (
 	constraint token unique (token)
 );
 
+/* Functions */
+
 CREATE OR REPLACE FUNCTION getuser(iusername VARCHAR(250))
 	RETURNS TABLE (id INT, username VARCHAR(250), password VARCHAR(250), lockout INT, lockexpire TIMESTAMP)
 AS $$
@@ -42,6 +46,96 @@ CREATE OR REPLACE FUNCTION gettoken(itoken VARCHAR(250))
 AS $$
 	SELECT * FROM tokenkey WHERE token = itoken;
 $$ LANGUAGE SQL;
+
+
+/* Procedures */
+
+CREATE OR REPLACE PROCEDURE createuser(name VARCHAR(250), pass VARCHAR(250))
+AS $$
+	INSERT  INTO useraccount (username, password) VALUES(name,pass);
+$$
+LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE createtoken(key VARCHAR(250))
+AS $$
+	INSERT  INTO tokenkey (token) VALUES(key);
+$$
+LANGUAGE SQL;
+
+/* Lock tracking Statments */
+
+/* Lock if statments*/
+CREATE OR REPLACE PROCEDURE failduserauth(userid INT) 
+AS $$
+	Declare
+		lock INT;
+BEGIN 
+  select lockout into lock from useraccount where id = userid;
+  IF lock > 2 THEN
+    	call lockaccount(userid);
+	ELSE
+		call updateuserlockout(userid);
+	END IF;
+END; 
+$$ 
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE faildtokenauth(tokenid INT) 
+AS $$
+	Declare
+		lock INT;
+BEGIN 
+  select lockout into lock from tokenkey where id = tokenid;
+  IF lock > 2 THEN
+    	call locktoken(tokenid);
+	ELSE
+		call updatetokenlockout(tokenid);
+	END IF;
+END; 
+$$ 
+LANGUAGE plpgsql;
+
+/*Unlock logic*/
+CREATE OR REPLACE PROCEDURE unlockaccount(userid INT) 
+AS $$
+BEGIN 
+	UPDATE useraccount SET lockout = 0, lockexpire = NOW() - INTERVAL '15 MINUTE' WHERE id = userid;
+END; 
+$$ 
+LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE unlocktoken(key INT) 
+AS $$
+BEGIN 
+	UPDATE tokenkey SET lockout = 0, lockexpire = NOW() - INTERVAL '15 MINUTE' WHERE id = key;
+END; 
+$$ 
+LANGUAGE SQL;
+
+/* updating lockout Statments */
+CREATE PROCEDURE failauthuser(key INT)
+AS $$ 
+	UPDATE useraccount SET lockout = lockout + 1 WHERE id = key;
+$$ LANGUAGE SQL;
+
+CREATE PROCEDURE failauthtoken(key INT)
+AS $$ 
+	UPDATE tokenkey SET lockout = lockout + 1 WHERE id = key;
+$$ LANGUAGE SQL;
+
+/* Lockaccount Statments */
+CREATE OR REPLACE PROCEDURE lockaccount(key INT)
+AS $$
+	UPDATE useraccount SET lockout = 3, lockexpire = now() WHERE id = key;
+$$
+LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE locktoken(key INT)
+AS $$
+	UPDATE tokenkey SET lockout = 3, lockexpire = now() WHERE id = key;
+$$
+LANGUAGE SQL;
+
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO testuser;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO testuser;
