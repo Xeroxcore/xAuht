@@ -80,5 +80,17 @@ namespace xAuth.test
             var result = Authentication.AuthenticateTokenKey(token, "user", "localhost");
             Assert.IsTrue(result.Token.Length > 10);
         }
+
+        [TestMethod]
+        public void ReauthenticateWithRefreshToken()
+        {
+            IToken token = new TokenKey()
+            {
+                Token = "helloworld123key",
+            };
+            var auth = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+            var result = Authentication.RefreshTokenKey(auth.refreshToken, "user", "localhost");
+            Assert.IsTrue(result.Token.Length > 3);
+        }
     }
 }

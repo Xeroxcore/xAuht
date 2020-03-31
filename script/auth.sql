@@ -33,6 +33,18 @@ CREATE TABLE tokenkey (
 	constraint token unique (token)
 );
 
+CREATE TABLE refreshtoken (
+	id SERIAL NOT NULL PRIMARY KEY,
+	token VARCHAR(250) NOT NULL,
+	used boolean NOT NULL DEFAULT '0',
+	expire TIMESTAMP NOT NULL DEFAULT NOW(),
+	userid INT NOT NULL DEFAULT 0,
+	tokenid INT NOT NULL DEFAULT 0,
+	CONSTRAINT uniquetoken UNIQUE (token),
+	FOREIGN KEY (userid) REFERENCES useraccount(id),
+	FOREIGN KEY (tokenid) REFERENCES tokenkey(id)
+);
+
 /* Functions */
 
 CREATE OR REPLACE FUNCTION getuser(iusername VARCHAR(250))

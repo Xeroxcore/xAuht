@@ -97,5 +97,25 @@ namespace xAuth
                 throw;
             }
         }
+
+        private void RefreshTokenIsValid(IRefreshToken refreshtoken)
+        {
+            if (refreshtoken.Used)
+                ThrowException("");
+
+            if (refreshtoken.Expires < DateTime.Now)
+                ThrowException("");
+        }
+
+        public virtual ITokenRespons RefreshTokenKey(string refreshtoken, string audiance, string domain)
+        {
+            var RefreshToken = Sql.SelectQuery("", refreshtoken);
+            return null;
+        }
+
+        public ITokenRespons RefreshUserAccount(string refreshtoken, string audiance, string domain)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
