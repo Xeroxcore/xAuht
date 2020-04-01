@@ -62,8 +62,6 @@ namespace xAuth.test
         [TestMethod]
         public void ReauthenticateWithRefreshToken()
         {
-
-
             try
             {
                 IToken token = new TokenKey()
@@ -78,6 +76,29 @@ namespace xAuth.test
             catch
             {
                 throw;
+            }
+        }
+
+
+        [TestMethod]
+        public void TestUsedRefreshToken()
+        {
+            try
+            {
+                IToken token = new TokenKey()
+                {
+                    Token = "helloworld123key",
+                };
+                var auth = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+                var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
+                var LockedRefToken = new RefreshToken() { Token = auth.RefreshToken };
+                Sql.AlterDataQuery("update refreshtoken set used = true where token = @Token", LockedRefToken);
+                var result = Authentication.RefreshTokenKey(auth.RefreshToken, "user", "localhost");
+                Assert.IsFalse(result.Token.Length > 3);
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("Warning: The Refreshtoken has already been used", error.Message);
             }
         }
     }

@@ -79,6 +79,8 @@ namespace xAuth
                 }
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 AddRefreshToken(tokenRespons.RefreshToken, userdb.Id, "user");
+                if (userdb.LockOut > 0)
+                    Unlock(userdb, "user");
                 return tokenRespons;
             }
             catch
@@ -95,6 +97,8 @@ namespace xAuth
                 IsLocked(tokendb, "token");
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 AddRefreshToken(tokenRespons.RefreshToken, tokendb.Id, "token");
+                if (tokendb.LockOut > 0)
+                    Unlock(tokendb, "token");
                 return tokenRespons;
             }
             catch
@@ -122,15 +126,21 @@ namespace xAuth
             return ObjectConverter.ConvertDataTableRowToObject<RefreshToken>(table, 0);
         }
 
+        private IRefreshToken AuthRefreshToken(string refreshtoken)
+        {
+            var token = GetRefreshToken(refreshtoken);
+            RefreshTokenIsValid(token);
+            return token;
+        }
+
         public virtual ITokenRespons RefreshTokenKey(string refreshtoken, string audiance, string domain)
         {
             TokenKey tokendb = new TokenKey();
             try
             {
-                var token = GetRefreshToken(refreshtoken);
-                RefreshTokenIsValid(token);
+                var token = AuthRefreshToken(refreshtoken);
                 tokendb.Id = token.TokenId;
-                tokendb = GetAuthFromDB<TokenKey>("select * from tokenkey where id = (@Id)", (TokenKey)tokendb);
+                tokendb = GetAuthFromDB<TokenKey>("select * from gettokenbyid(@Id)", tokendb);
                 return AuthenticateTokenKey(tokendb, "token", "localhost"); ;
             }
             catch
@@ -143,7 +153,18 @@ namespace xAuth
 
         public ITokenRespons RefreshUserAccount(string refreshtoken, string audiance, string domain)
         {
-            throw new NotImplementedException();
+            UserAccount user = new UserAccount();
+            try
+            {
+                var token = AuthRefreshToken(refreshtoken);
+                user.Id = token.UserId;
+                user = GetAuthFromDB<UserAccount>("select * from getuserbyid(@Id)", user);
+                return AuthentiacteUser(user, "token", "localhost"); ;
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

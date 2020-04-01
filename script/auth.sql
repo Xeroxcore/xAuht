@@ -59,6 +59,18 @@ AS $$
 	SELECT * FROM tokenkey WHERE token = itoken;
 $$ LANGUAGE SQL;
 
+CREATE OR REPLACE FUNCTION getuserbyid (key INT)
+	RETURNS TABLE (id INT, username VARCHAR(250), password VARCHAR(250), lockout INT, lockexpire TIMESTAMP)
+AS $$
+	SELECT * FROM useraccount WHERE id = key;
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE FUNCTION gettokenbyid (key INT)
+	RETURNS TABLE (id INT, token VARCHAR(250), lockout INT, lockexpire TIMESTAMP)
+AS $$
+	SELECT * FROM tokenkey WHERE id = key;
+$$ LANGUAGE SQL;
+
 CREATE OR REPLACE FUNCTION getrefreshtoken (reftoken VARCHAR(250))
 	RETURNS TABLE (id INT, token VARCHAR(250), used BOOLEAN, expired TIMESTAMP, userid INT, tokenid INT)
 AS $$
