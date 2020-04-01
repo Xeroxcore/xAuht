@@ -9,7 +9,7 @@ namespace xAuth.test
     [TestClass]
     public class AuthenticationTokenTest
     {
-        private readonly IAuth Authentication = new Auth(
+        private readonly IAuth Authentication = new TokenAuth(
             new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
             new JwtGenerator("asdas1d31q51131#", "HS256"));
         private readonly NpgSql Sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
@@ -21,7 +21,7 @@ namespace xAuth.test
             {
                 Token = "helloworld123key"
             };
-            var result = Authentication.AuthenticateTokenKey(user, "tokenkey-", "localhost");
+            var result = Authentication.Authentiacte(user, "tokenkey-", "localhost");
             Assert.IsTrue(result.Token.Length > 10);
         }
 
@@ -36,7 +36,7 @@ namespace xAuth.test
                     LockOut = 3,
                 };
                 Sql.AlterDataQuery("update tokenkey set lockout = @LockOut, lockexpire = now() Where token = @Token", token);
-                var result = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+                var result = Authentication.Authentiacte(token, "user", "localhost");
                 Assert.IsTrue(result.Token.Length > 3);
             }
             catch (Exception error)
@@ -55,7 +55,7 @@ namespace xAuth.test
                 LockExpire = DateTime.Now.AddMinutes(-30)
             };
             Sql.AlterDataQuery("update tokenkey set lockout = 3, lockexpire = @LockExpire Where token = @Token", token);
-            var result = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+            var result = Authentication.Authentiacte(token, "user", "localhost");
             Assert.IsTrue(result.Token.Length > 10);
         }
 
@@ -68,9 +68,9 @@ namespace xAuth.test
                 {
                     Token = "helloworld123key",
                 };
-                var auth = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+                var auth = Authentication.Authentiacte(token, "user", "localhost");
                 var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
-                var result = Authentication.RefreshTokenKey(auth.RefreshToken, "user", "localhost");
+                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost");
                 Assert.IsTrue(result.Token.Length > 3);
             }
             catch
@@ -89,11 +89,11 @@ namespace xAuth.test
                 {
                     Token = "helloworld123key",
                 };
-                var auth = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+                var auth = Authentication.Authentiacte(token, "user", "localhost");
                 var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
                 var LockedRefToken = new RefreshToken() { Token = auth.RefreshToken };
                 Sql.AlterDataQuery("update refreshtoken set used = true where token = @Token", LockedRefToken);
-                var result = Authentication.RefreshTokenKey(auth.RefreshToken, "user", "localhost");
+                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost");
                 Assert.IsFalse(result.Token.Length > 3);
             }
             catch (Exception error)

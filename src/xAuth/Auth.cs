@@ -5,7 +5,7 @@ using xSql.Interface;
 
 namespace xAuth
 {
-    public class Auth : IAuth
+    public class Auth
     {
         protected ISqlHelper Sql { get; }
         protected IJwtGenerator Jwt { get; }
@@ -32,21 +32,13 @@ namespace xAuth
             return ObjectConverter.ConvertDataTableRowToObject<T>(table, 0);
         }
 
-        protected void Unlock(ILockout lockout, string type)
-        {
-            if ("user" == type)
-                Sql.AlterDataQuery("call unlockaccount(@Id)", lockout);
-            else
-                Sql.AlterDataQuery("call unlocktoken(@Id)", lockout);
-        }
-
-        protected void IsLocked(ILockout lockout, string type)
+        protected bool IsLocked(ILockout lockout)
         {
             if (lockout.LockOut >= 3)
                 if (lockout.LockExpire.AddMinutes(15) > DateTime.Now)
                     ThrowException($"Account has been locked please try again later");
-                else
-                    Unlock(lockout, type);
+
+            return false;
         }
 
         protected IRefreshToken GetRefreshToken(string refreshtoken)

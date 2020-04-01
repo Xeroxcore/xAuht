@@ -9,7 +9,7 @@ namespace xAuth.test
     [TestClass]
     public class AuthenticationUserTest
     {
-        private readonly IAuth Authentication = new Auth(
+        private readonly IAuth Authentication = new UserAuth(
             new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
             new JwtGenerator("asdas1d31q51131#", "HS256"));
 
@@ -23,7 +23,7 @@ namespace xAuth.test
                 UserName = "Nasar",
                 Password = "helloworld"
             };
-            var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+            var token = Authentication.Authentiacte(user, "user", "localhost");
             Assert.IsTrue(token.Token.Length > 10);
         }
 
@@ -39,7 +39,7 @@ namespace xAuth.test
                     LockOut = 3,
                 };
                 Sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = now() Where username = @UserName", user);
-                var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+                var token = Authentication.Authentiacte(user, "user", "localhost");
                 Assert.IsFalse(token.Token.Length > 10);
             }
             catch (Exception error)
@@ -59,7 +59,7 @@ namespace xAuth.test
             Sql.AlterDataQuery("update useraccount set lockout = 2, lockexpire = now() Where username = @UserName", user);
             try
             {
-                var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+                var token = Authentication.Authentiacte(user, "user", "localhost");
                 Assert.IsFalse(token.Token.Length > 10);
             }
             catch
@@ -80,7 +80,7 @@ namespace xAuth.test
                 LockExpire = DateTime.Now.AddMinutes(-30)
             };
             Sql.AlterDataQuery("update useraccount set lockout = 3, lockexpire = @LockExpire Where username = @UserName", user);
-            var token = Authentication.AuthentiacteUser(user, "user", "localhost");
+            var token = Authentication.Authentiacte(user, "user", "localhost");
             Assert.IsTrue(token.Token.Length > 10);
         }
 
@@ -94,9 +94,9 @@ namespace xAuth.test
                     UserName = "Nasar2",
                     Password = "helloworld",
                 };
-                var auth = Authentication.AuthentiacteUser(user, "user", "localhost");
+                var auth = Authentication.Authentiacte(user, "user", "localhost");
                 var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
-                var result = Authentication.RefreshUserAccount(auth.RefreshToken, "user", "localhost");
+                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost");
                 Assert.IsTrue(result.Token.Length > 3);
             }
             catch
@@ -115,11 +115,11 @@ namespace xAuth.test
                     UserName = "Nasar2",
                     Password = "helloworld",
                 };
-                var auth = Authentication.AuthentiacteUser(user, "user", "localhost");
+                var auth = Authentication.Authentiacte(user, "user", "localhost");
                 var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
                 var LockedRefToken = new RefreshToken() { Token = auth.RefreshToken };
                 Sql.AlterDataQuery("update refreshtoken set used = true where token = @Token", LockedRefToken);
-                var result = Authentication.RefreshUserAccount(auth.RefreshToken, "user", "localhost");
+                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost");
                 Assert.IsFalse(result.Token.Length > 3);
             }
             catch (Exception error)

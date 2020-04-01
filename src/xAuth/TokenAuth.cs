@@ -3,10 +3,10 @@ using xSql.Interface;
 
 namespace xAuth
 {
-    public class TokenAuth : Auth
+    public class TokenAuth : Auth, IAuth
     {
-        public TokenAuth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator) : base(sqlHandler, jwtGenerator)
-        { }
+        public TokenAuth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator)
+        : base(sqlHandler, jwtGenerator) { }
 
         protected void FailedAuthentication(ILockout lockout)
             => Sql.AlterDataQuery<ILockout>("call faildtokenauth(@Id)", lockout);
@@ -20,15 +20,15 @@ namespace xAuth
             Sql.AlterDataQuery("call addfreshtokentoken(@Token,@Id)", reftoken);
         }
 
-        public virtual ITokenRespons AuthenticateTokenKey(IToken token, string audiance, string domain)
+        public virtual ITokenRespons Authentiacte(object token, string audiance, string domain)
         {
+
             try
             {
                 var tokendb = GetAuthFromDB("select * from gettoken(@Token)", (TokenKey)token);
-                IsLocked(tokendb, "token");
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
                 AddRefreshToken(tokenRespons.RefreshToken, tokendb.Id);
-                if (tokendb.LockOut > 0)
+                if (!IsLocked(tokendb) && tokendb.LockOut > 0)
                     Unlock(tokendb);
                 return tokenRespons;
             }
@@ -38,7 +38,7 @@ namespace xAuth
             }
         }
 
-        public virtual ITokenRespons RefreshTokenKey(string refreshtoken, string audiance, string domain)
+        public virtual ITokenRespons RefreshToken(string refreshtoken, string audiance, string domain)
         {
             TokenKey tokendb = new TokenKey();
             try
@@ -46,7 +46,7 @@ namespace xAuth
                 var token = AuthRefreshToken(refreshtoken);
                 tokendb.Id = token.TokenId;
                 tokendb = GetAuthFromDB<TokenKey>("select * from gettokenbyid(@Id)", tokendb);
-                return AuthenticateTokenKey(tokendb, "token", "localhost"); ;
+                return Authentiacte(tokendb, "token", "localhost"); ;
             }
             catch
             {
