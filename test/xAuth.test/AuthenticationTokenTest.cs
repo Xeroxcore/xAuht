@@ -12,6 +12,7 @@ namespace xAuth.test
         private readonly IAuth Authentication = new Auth(
             new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
             new JwtGenerator("asdas1d31q51131#", "HS256"));
+        private readonly NpgSql Sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
 
         [TestMethod]
         public void AuthenticateTokenKey()
@@ -34,35 +35,13 @@ namespace xAuth.test
                     Token = "helloworld123key",
                     LockOut = 3,
                 };
-                var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
-                sql.AlterDataQuery("update tokenkey set lockout = @LockOut, lockexpire = now() Where token = @Token", token);
+                Sql.AlterDataQuery("update tokenkey set lockout = @LockOut, lockexpire = now() Where token = @Token", token);
                 var result = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+                Assert.IsTrue(result.Token.Length > 3);
             }
             catch (Exception error)
             {
                 Assert.AreEqual("Account has been locked please try again later", error.Message);
-            }
-        }
-
-        [TestMethod]
-        public void LockAccount()
-        {
-            IToken token = new TokenKey()
-            {
-                Token = "helloworld123key",
-                LockOut = 3,
-            };
-            var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
-            sql.AlterDataQuery("update tokenkey set lockout = 2, lockexpire = now() Where token = @Token", token);
-            try
-            {
-                var reuslt = Authentication.AuthenticateTokenKey(token, "user", "localhost");
-            }
-            catch
-            {
-                var table = sql.SelectQuery("select * from gettoken(@Token)", token);
-                var dbUser = ObjectConverter.ConvertDataTableRowToObject<TokenKey>(table, 0);
-                Assert.AreEqual(3, dbUser.LockOut);
             }
         }
 
@@ -75,8 +54,7 @@ namespace xAuth.test
                 LockOut = 3,
                 LockExpire = DateTime.Now.AddMinutes(-30)
             };
-            var sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
-            sql.AlterDataQuery("update tokenkey set lockout = 3, lockexpire = @LockExpire Where token = @Token", token);
+            Sql.AlterDataQuery("update tokenkey set lockout = 3, lockexpire = @LockExpire Where token = @Token", token);
             var result = Authentication.AuthenticateTokenKey(token, "user", "localhost");
             Assert.IsTrue(result.Token.Length > 10);
         }
@@ -84,13 +62,23 @@ namespace xAuth.test
         [TestMethod]
         public void ReauthenticateWithRefreshToken()
         {
-            IToken token = new TokenKey()
+
+
+            try
             {
-                Token = "helloworld123key",
-            };
-            var auth = Authentication.AuthenticateTokenKey(token, "user", "localhost");
-            var result = Authentication.RefreshTokenKey(auth.refreshToken, "user", "localhost");
-            Assert.IsTrue(result.Token.Length > 3);
+                IToken token = new TokenKey()
+                {
+                    Token = "helloworld123key",
+                };
+                var auth = Authentication.AuthenticateTokenKey(token, "user", "localhost");
+                var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
+                var result = Authentication.RefreshTokenKey(auth.RefreshToken, "user", "localhost");
+                Assert.IsTrue(result.Token.Length > 3);
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

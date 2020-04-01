@@ -38,8 +38,8 @@ CREATE TABLE refreshtoken (
 	token VARCHAR(250) NOT NULL,
 	used boolean NOT NULL DEFAULT '0',
 	expire TIMESTAMP NOT NULL DEFAULT NOW(),
-	userid INT NOT NULL DEFAULT 0,
-	tokenid INT NOT NULL DEFAULT 0,
+	userid INT,
+	tokenid INT,
 	CONSTRAINT uniquetoken UNIQUE (token),
 	FOREIGN KEY (userid) REFERENCES useraccount(id),
 	FOREIGN KEY (tokenid) REFERENCES tokenkey(id)
@@ -59,18 +59,36 @@ AS $$
 	SELECT * FROM tokenkey WHERE token = itoken;
 $$ LANGUAGE SQL;
 
+CREATE OR REPLACE FUNCTION getrefreshtoken (reftoken VARCHAR(250))
+	RETURNS TABLE (id INT, token VARCHAR(250), used BOOLEAN, expired TIMESTAMP, userid INT, tokenid INT)
+AS $$
+	SELECT * FROM refreshtoken WHERE token = reftoken;
+$$ LANGUAGE SQL;
+
 
 /* Procedures */
 
-CREATE OR REPLACE PROCEDURE createuser(name VARCHAR(250), pass VARCHAR(250))
+CREATE OR REPLACE PROCEDURE adduser(name VARCHAR(250), pass VARCHAR(250))
 AS $$
 	INSERT  INTO useraccount (username, password) VALUES(name,pass);
 $$
 LANGUAGE SQL;
 
-CREATE OR REPLACE PROCEDURE createtoken(key VARCHAR(250))
+CREATE OR REPLACE PROCEDURE addtoken(key VARCHAR(250))
 AS $$
 	INSERT  INTO tokenkey (token) VALUES(key);
+$$
+LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE addfreshtokenuser(reftoken VARCHAR(250), userkey INT)
+AS $$
+	INSERT INTO refreshtoken (token, userid) VALUES(reftoken, userkey);
+$$
+LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE addfreshtokentoken(reftoken VARCHAR(250), tokenkey INT)
+AS $$
+	INSERT INTO refreshtoken (token, tokenid) VALUES(reftoken, tokenkey);
 $$
 LANGUAGE SQL;
 

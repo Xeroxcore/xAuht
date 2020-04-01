@@ -52,7 +52,7 @@ namespace xAuth
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 TokenType = "Bearer",
                 Expiration = $"UTC{token.ValidTo}",
-                refreshToken = CreateRefreshToken()
+                RefreshToken = CreateRefreshToken()
             };
         }
 

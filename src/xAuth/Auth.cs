@@ -27,7 +27,7 @@ namespace xAuth
         protected T GetAuthFromDB<T>(string querry, T data)
         {
             var table = Sql.SelectQuery<T>(querry, (T)data);
-            if (table.Rows.Count < 1)
+            if (table != null && table.Rows.Count < 1)
                 ThrowException("Value not found in DB");
             return ObjectConverter.ConvertDataTableRowToObject<T>(table, 0);
         }
@@ -57,6 +57,15 @@ namespace xAuth
                 Sql.AlterDataQuery<ILockout>("call faildtokenauth(@Id)", lockout);
         }
 
+        private void AddRefreshToken(string token, int id, string type)
+        {
+            var reftoken = new { Token = token, Id = id };
+            if (type == "user")
+                Sql.AlterDataQuery("call addfreshtokenuser(@Token,@Id)", reftoken);
+            else
+                Sql.AlterDataQuery("call addfreshtokentoken(@Token,@Id)", reftoken);
+        }
+
         public virtual ITokenRespons AuthentiacteUser(IUser user, string audiance, string domain)
         {
             try
@@ -69,6 +78,7 @@ namespace xAuth
                     ThrowException($"Authentication failed for {user.UserName}");
                 }
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
+                AddRefreshToken(tokenRespons.RefreshToken, userdb.Id, "user");
                 return tokenRespons;
             }
             catch
@@ -83,13 +93,8 @@ namespace xAuth
             {
                 var tokendb = GetAuthFromDB("select * from gettoken(@Token)", (TokenKey)token);
                 IsLocked(tokendb, "token");
-                if (tokendb.Token != token.Token)
-                {
-                    FailedAuthentication(tokendb, "token");
-                    ThrowException($"Authentication failed for {token.Token}");
-                }
-
                 var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
+                AddRefreshToken(tokenRespons.RefreshToken, tokendb.Id, "token");
                 return tokenRespons;
             }
             catch
@@ -98,19 +103,42 @@ namespace xAuth
             }
         }
 
-        private void RefreshTokenIsValid(IRefreshToken refreshtoken)
+        protected void RefreshTokenIsValid(IRefreshToken refreshtoken)
         {
             if (refreshtoken.Used)
-                ThrowException("");
+                ThrowException("Warning: The Refreshtoken has already been used");
 
-            if (refreshtoken.Expires < DateTime.Now)
-                ThrowException("");
+            if (refreshtoken.Expired.AddMinutes(20) < DateTime.Now)
+                ThrowException("Warning: The Refreshtoken has expired" + refreshtoken.Expired);
+        }
+
+        protected IRefreshToken GetRefreshToken(string refreshtoken)
+        {
+            var tokenkey = new RefreshToken()
+            {
+                Token = refreshtoken
+            };
+            var table = Sql.SelectQuery("select * from getrefreshtoken(@Token)", tokenkey);
+            return ObjectConverter.ConvertDataTableRowToObject<RefreshToken>(table, 0);
         }
 
         public virtual ITokenRespons RefreshTokenKey(string refreshtoken, string audiance, string domain)
         {
-            var RefreshToken = Sql.SelectQuery("", refreshtoken);
-            return null;
+            TokenKey tokendb = new TokenKey();
+            try
+            {
+                var token = GetRefreshToken(refreshtoken);
+                RefreshTokenIsValid(token);
+                tokendb.Id = token.TokenId;
+                tokendb = GetAuthFromDB<TokenKey>("select * from tokenkey where id = (@Id)", (TokenKey)tokendb);
+                return AuthenticateTokenKey(tokendb, "token", "localhost"); ;
+            }
+            catch
+            {
+                FailedAuthentication(tokendb, "token");
+                throw;
+            }
+
         }
 
         public ITokenRespons RefreshUserAccount(string refreshtoken, string audiance, string domain)

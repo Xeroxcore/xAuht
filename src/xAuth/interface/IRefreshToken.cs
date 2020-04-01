@@ -6,7 +6,7 @@ namespace xAuth.Interface
     {
         int Id { get; set; }
         string Token { get; set; }
-        DateTime Expires { get; set; }
+        DateTime Expired { get; set; }
         bool Used { get; set; }
         int UserId { get; set; }
         int TokenId { get; set; }

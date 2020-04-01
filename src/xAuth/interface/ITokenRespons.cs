@@ -5,6 +5,6 @@ namespace xAuth.Interface
         string Token { get; set; }
         string TokenType { get; set; }
         string Expiration { get; set; }
-        string refreshToken { get; set; }
+        string RefreshToken { get; set; }
     }
 }

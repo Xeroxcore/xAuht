@@ -30,7 +30,6 @@ namespace xAuth.test
         {
             try
             {
-
                 IUser user = new UserAccount()
                 {
                     UserName = "Nasar2",
