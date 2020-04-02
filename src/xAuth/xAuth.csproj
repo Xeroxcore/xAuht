@@ -1,7 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <PackageId>xAuth</PackageId>
+    <Version>1.0.0</Version>
+    <Company>Xeroxcore</Company>
+    <Title>xAuth</Title>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageDescription>A package that is capable of handeling authentications for both users and tokens</PackageDescription>
+    <Summary>A JWT token authentication package</Summary>
+    <PackageTags>Authentication</PackageTags>
+    <Authors>Nasar Eddaoui</Authors>
+    <Copyright>Copyright © Xeroxcore 2020</Copyright>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Xeroxcore/Xauth</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
