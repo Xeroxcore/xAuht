@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Security.Claims;
 using xAuth.Interface;
 using xSql.Interface;
 
@@ -5,7 +7,6 @@ namespace xAuth
 {
     public class UserAuth : Auth, IAuth
     {
-
         public UserAuth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator) : base(sqlHandler, jwtGenerator)
         { }
 
@@ -20,21 +21,27 @@ namespace xAuth
 
         private void Unlock(ILockout lockout)
             => Sql.AlterDataQuery("call unlockaccount(@Id)", lockout);
+        private void ValidateAccount(UserAccount useracc, UserAccount userdb)
+        {
+            if (userdb.UserName != useracc.UserName || userdb.Password != useracc.Password)
+            {
+                FailedAuthentication(userdb);
+                ThrowException($"Authentication failed for {useracc.UserName}");
+            }
 
-        public virtual ITokenRespons Authentiacte(object user, string audiance, string domain)
+            if (!IsLocked(userdb) && userdb.LockOut > 0)
+                Unlock(userdb);
+        }
+
+        public virtual ITokenRespons Authentiacte(object user, string audiance, string domain, AddClaimsMethod method)
         {
             try
             {
                 var useracc = (UserAccount)user;
                 var userdb = GetAuthFromDB("select * from getuser(@UserName)", useracc);
-                if (userdb.UserName != useracc.UserName || userdb.Password != useracc.Password)
-                {
-                    FailedAuthentication(userdb);
-                    ThrowException($"Authentication failed for {useracc.UserName}");
-                }
-                if (!IsLocked(userdb) && userdb.LockOut > 0)
-                    Unlock(userdb);
-                var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
+                ValidateAccount(useracc, userdb);
+                var claims = FetchClaims(method, userdb.Id);
+                var tokenRespons = Jwt.CreateJwtToken(claims, audiance, domain);
                 AddRefreshToken(tokenRespons.RefreshToken, userdb.Id);
                 return tokenRespons;
             }
@@ -44,7 +51,7 @@ namespace xAuth
             }
         }
 
-        public ITokenRespons RefreshToken(string refreshtoken, string audiance, string domain)
+        public ITokenRespons RefreshToken(string refreshtoken, string audiance, string domain, AddClaimsMethod method)
         {
             UserAccount user = new UserAccount();
             try
@@ -52,7 +59,7 @@ namespace xAuth
                 var token = AuthRefreshToken(refreshtoken);
                 user.Id = token.UserId;
                 user = GetAuthFromDB<UserAccount>("select * from getuserbyid(@Id)", user);
-                return Authentiacte(user, "token", "localhost"); ;
+                return Authentiacte(user, "token", "localhost", method); ;
             }
             catch
             {

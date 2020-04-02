@@ -20,13 +20,14 @@ namespace xAuth
             Sql.AlterDataQuery("call addfreshtokentoken(@Token,@Id)", reftoken);
         }
 
-        public virtual ITokenRespons Authentiacte(object token, string audiance, string domain)
+        public virtual ITokenRespons Authentiacte(object token, string audiance, string domain, AddClaimsMethod method)
         {
 
             try
             {
                 var tokendb = GetAuthFromDB("select * from gettoken(@Token)", (TokenKey)token);
-                var tokenRespons = Jwt.CreateJwtToken(null, audiance, domain);
+                var claims = FetchClaims(method, tokendb.Id);
+                var tokenRespons = Jwt.CreateJwtToken(claims, audiance, domain);
                 AddRefreshToken(tokenRespons.RefreshToken, tokendb.Id);
                 if (!IsLocked(tokendb) && tokendb.LockOut > 0)
                     Unlock(tokendb);
@@ -38,7 +39,7 @@ namespace xAuth
             }
         }
 
-        public virtual ITokenRespons RefreshToken(string refreshtoken, string audiance, string domain)
+        public virtual ITokenRespons RefreshToken(string refreshtoken, string audiance, string domain, AddClaimsMethod method)
         {
             TokenKey tokendb = new TokenKey();
             try
@@ -46,7 +47,7 @@ namespace xAuth
                 var token = AuthRefreshToken(refreshtoken);
                 tokendb.Id = token.TokenId;
                 tokendb = GetAuthFromDB<TokenKey>("select * from gettokenbyid(@Id)", tokendb);
-                return Authentiacte(tokendb, "token", "localhost"); ;
+                return Authentiacte(tokendb, "token", "localhost", method); ;
             }
             catch
             {

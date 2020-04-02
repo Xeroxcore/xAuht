@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using Components;
 using xAuth.Interface;
 using xSql.Interface;
 
 namespace xAuth
 {
+    public delegate List<Claim> AddClaimsMethod(int id);
     public class Auth
     {
         protected ISqlHelper Sql { get; }
@@ -65,6 +68,14 @@ namespace xAuth
             var token = GetRefreshToken(refreshtoken);
             RefreshTokenIsValid(token);
             return token;
+        }
+
+        protected List<Claim> FetchClaims(AddClaimsMethod method, int id)
+        {
+            List<Claim> claims = new List<Claim>();
+            if (method != null)
+                claims = method(id);
+            return claims;
         }
     }
 }

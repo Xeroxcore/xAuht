@@ -23,7 +23,7 @@ namespace xAuth.test
                 UserName = "Nasar",
                 Password = "helloworld"
             };
-            var token = Authentication.Authentiacte(user, "user", "localhost");
+            var token = Authentication.Authentiacte(user, "user", "localhost", null);
             Assert.IsTrue(token.Token.Length > 10);
         }
 
@@ -39,7 +39,7 @@ namespace xAuth.test
                     LockOut = 3,
                 };
                 Sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = now() Where username = @UserName", user);
-                var token = Authentication.Authentiacte(user, "user", "localhost");
+                var token = Authentication.Authentiacte(user, "user", "localhost", null);
                 Assert.IsFalse(token.Token.Length > 10);
             }
             catch (Exception error)
@@ -59,7 +59,7 @@ namespace xAuth.test
             Sql.AlterDataQuery("update useraccount set lockout = 2, lockexpire = now() Where username = @UserName", user);
             try
             {
-                var token = Authentication.Authentiacte(user, "user", "localhost");
+                var token = Authentication.Authentiacte(user, "user", "localhost", null);
                 Assert.IsFalse(token.Token.Length > 10);
             }
             catch
@@ -80,7 +80,7 @@ namespace xAuth.test
                 LockExpire = DateTime.Now.AddMinutes(-30)
             };
             Sql.AlterDataQuery("update useraccount set lockout = 3, lockexpire = @LockExpire Where username = @UserName", user);
-            var token = Authentication.Authentiacte(user, "user", "localhost");
+            var token = Authentication.Authentiacte(user, "user", "localhost", null);
             Assert.IsTrue(token.Token.Length > 10);
         }
 
@@ -94,9 +94,9 @@ namespace xAuth.test
                     UserName = "Nasar2",
                     Password = "helloworld",
                 };
-                var auth = Authentication.Authentiacte(user, "user", "localhost");
+                var auth = Authentication.Authentiacte(user, "user", "localhost", null);
                 var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
-                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost");
+                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost", null);
                 Assert.IsTrue(result.Token.Length > 3);
             }
             catch
@@ -115,11 +115,11 @@ namespace xAuth.test
                     UserName = "Nasar2",
                     Password = "helloworld",
                 };
-                var auth = Authentication.Authentiacte(user, "user", "localhost");
+                var auth = Authentication.Authentiacte(user, "user", "localhost", null);
                 var table = Sql.SelectQuery("select * from getrefreshtoken(@RefreshToken)", auth);
                 var LockedRefToken = new RefreshToken() { Token = auth.RefreshToken };
                 Sql.AlterDataQuery("update refreshtoken set used = true where token = @Token", LockedRefToken);
-                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost");
+                var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost", null);
                 Assert.IsFalse(result.Token.Length > 3);
             }
             catch (Exception error)
