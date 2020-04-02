@@ -72,7 +72,7 @@ namespace xAuth
 
         protected List<Claim> FetchClaims(AddClaimsMethod method, int id)
         {
-            List<Claim> claims = new List<Claim>();
+            var claims = new List<Claim>();
             if (method != null)
                 claims = method(id);
             return claims;

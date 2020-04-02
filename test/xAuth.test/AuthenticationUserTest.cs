@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using Components;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using xAuth.Interface;
@@ -23,8 +25,16 @@ namespace xAuth.test
                 UserName = "Nasar",
                 Password = "helloworld"
             };
-            var token = Authentication.Authentiacte(user, "user", "localhost", null);
+            var token = Authentication.Authentiacte(user, "user", "localhost", AddRole);
             Assert.IsTrue(token.Token.Length > 10);
+        }
+
+        public List<Claim> AddRole(int id)
+        {
+            var claimList = new List<Claim>();
+            var claim = new Claim("Role", "Admin");
+            claimList.Add(claim);
+            return claimList;
         }
 
         [TestMethod]
