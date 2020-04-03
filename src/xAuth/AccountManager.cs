@@ -11,41 +11,8 @@ namespace xAuth
         public AccountManager(ISqlHelper sql)
         {
             if (sql is null)
-                throw new Exception("");
+                throw new Exception("sql Parameter cant be null in constructor");
             Sql = sql;
-        }
-        private void RoleInsertionIsValid(int dbId, int roleId)
-        {
-            if (dbId == 0 && roleId == 0)
-                throw new Exception("You can't pass 0 as ID");
-        }
-        public void addRoleToTokenKey(int tokenId, int roleId)
-        {
-            try
-            {
-                RoleInsertionIsValid(tokenId, roleId);
-                var role = new { TokenId = tokenId, RoleId = roleId };
-                Sql.AlterDataQuery("call addtokenrole(@TokenId, @RoleId)", role);
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        public void addRoleToUser(int userId, int roleId)
-        {
-
-            try
-            {
-                RoleInsertionIsValid(userId, roleId);
-                var role = new { UserId = userId, RoleId = roleId };
-                Sql.AlterDataQuery("call adduserrole(@UserId, @RoleId)", role);
-            }
-            catch
-            {
-                throw;
-            }
         }
 
         public void AddTokenKey(IToken newToken)
@@ -78,14 +45,67 @@ namespace xAuth
             }
         }
 
+        private void RoleDataIsValid(int dbId, int roleId)
+        {
+            if (dbId == 0 && roleId == 0)
+                throw new Exception("You can't pass 0 as ID");
+        }
+
+        public void addRoleToTokenKey(int tokenId, int roleId)
+        {
+            try
+            {
+                RoleDataIsValid(tokenId, roleId);
+                var role = new { TokenId = tokenId, RoleId = roleId };
+                Sql.AlterDataQuery("call addtokenrole(@TokenId, @RoleId)", role);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public void addRoleToUser(int userId, int roleId)
+        {
+
+            try
+            {
+                RoleDataIsValid(userId, roleId);
+                var role = new { UserId = userId, RoleId = roleId };
+                Sql.AlterDataQuery("call adduserrole(@UserId, @RoleId)", role);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public void RemoveRolefromTokenKey(int tokenId, int roleId)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                RoleDataIsValid(tokenId, roleId);
+                var role = new { TokenId = tokenId, RoleId = roleId };
+                Sql.AlterDataQuery("call removerolefromtoken(@TokenId, @RoleId)", role);
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         public void RemoveRolefromUser(int userId, int roleId)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                RoleDataIsValid(userId, roleId);
+                var role = new { UserId = userId, RoleId = roleId };
+                Sql.AlterDataQuery("call removerolefromuser(@UserId, @RoleId)", role);
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

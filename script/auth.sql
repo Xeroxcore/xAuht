@@ -127,16 +127,6 @@ AS $$
 $$
 LANGUAGE SQL;
 
-CREATE OR REPLACE PROCEDURE adduserrole(userkey INT, roleskey INT)
-AS $$ 
-	INSERT INTO useraccount_roles (useraccountid,rolesid) VALUES (userkey, roleskey);
-$$ LANGUAGE SQL;
-
-CREATE OR REPLACE PROCEDURE addtokenrole(tokenkey INT, roleskey INT)
-AS $$ 
-	INSERT INTO token_roles (tokenid,rolesid) VALUES (tokenkey, roleskey);
-$$ LANGUAGE SQL;
-
 /* Lock tracking Statments */
 
 /* Lock if statments*/
@@ -211,6 +201,27 @@ AS $$
 $$
 LANGUAGE SQL;
 
+/* ROLES */
+
+CREATE OR REPLACE PROCEDURE adduserrole(userkey INT, roleskey INT)
+AS $$ 
+	INSERT INTO useraccount_roles (useraccountid,rolesid) VALUES (userkey, roleskey);
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE addtokenrole(tokenkey INT, roleskey INT)
+AS $$ 
+	INSERT INTO token_roles (tokenid,rolesid) VALUES (tokenkey, roleskey);
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE removerolefromuser(userkey INT, rolekey INT)
+AS $$
+	DELETE FROM useraccount_roles WHERE useraccountid = userkey AND rolesid = rolekey
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE removerolefromtoken(tokenkey INT, rolekey INT)
+AS $$
+	DELETE FROM token_roles WHERE tokenid = tokenkey AND rolesid = rolekey
+$$ LANGUAGE SQL;
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO testuser;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO testuser;

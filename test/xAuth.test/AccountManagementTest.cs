@@ -109,5 +109,54 @@ namespace xAuth.test
             var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
             manger.RemoveRolefromUser(selectedUser.Id, RoleList[0].Id);
         }
+
+
+        [TestMethod]
+        public void AddRoleToToken()
+        {
+            var token = new TokenKey() { Token = "helloworld123key" };
+
+            var resultUser = Sql.SelectQuery("select * from gettoken(@Token)", token);
+            var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+
+            var Roles = Sql.SelectQuery("select * from roles", token);
+            var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
+
+            manger.addRoleToTokenKey(selectedUser.Id, RoleList[0].Id);
+        }
+
+        [TestMethod]
+        public void AddDublicateRoleToToken()
+        {
+            try
+            {
+                var token = new TokenKey() { Token = "helloworld123key" };
+
+                var resultUser = Sql.SelectQuery("select * from gettoken(@Token)", token);
+                var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+
+                var Roles = Sql.SelectQuery("select * from roles", token);
+                var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
+
+                manger.addRoleToTokenKey(selectedUser.Id, RoleList[0].Id);
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("23505: duplicate key value violates unique constraint \"token_role\"", error.Message);
+            }
+        }
+
+        [TestMethod]
+        public void RemoveRoleFromToken()
+        {
+            var token = new TokenKey() { Token = "helloworld123key" };
+
+            var resultUser = Sql.SelectQuery("select * from gettoken(@Token)", token);
+            var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+
+            var Roles = Sql.SelectQuery("select * from roles", token);
+            var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
+            manger.RemoveRolefromTokenKey(selectedUser.Id, RoleList[0].Id);
+        }
     }
 }
