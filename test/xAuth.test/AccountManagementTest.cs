@@ -30,7 +30,6 @@ namespace xAuth.test
             try
             {
                 manger.AddUser("Nasar3", "helloworld123");
-
                 Assert.AreNotEqual("Nasar3", newUser.UserName);
             }
             catch (Exception error)
@@ -61,6 +60,54 @@ namespace xAuth.test
             var result = ObjectConverter.ConvertDataTableRowToObject<TokenKey>(table, 0);
             Assert.AreEqual(token.Token, result.Token);
             Sql.AlterDataQuery("delete from tokenkey where token = @Token", token);
+        }
+
+        [TestMethod]
+        public void AddRoleToUser()
+        {
+            var user = new UserAccount() { UserName = "Nasar" };
+
+            var resultUser = Sql.SelectQuery("select * from getuser(@UserName)", user);
+            var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+
+            var Roles = Sql.SelectQuery("select * from roles", user);
+            var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
+
+            manger.addRoleToUser(selectedUser.Id, RoleList[0].Id);
+        }
+
+        [TestMethod]
+        public void AddDublicateRoleToUser()
+        {
+            try
+            {
+                var user = new UserAccount() { UserName = "Nasar" };
+
+                var resultUser = Sql.SelectQuery("select * from getuser(@UserName)", user);
+                var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+
+                var Roles = Sql.SelectQuery("select * from roles", user);
+                var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
+
+                manger.addRoleToUser(selectedUser.Id, RoleList[0].Id);
+            }
+            catch (Exception error)
+            {
+                Assert.AreEqual("23505: duplicate key value violates unique constraint \"user_role\"", error.Message);
+            }
+        }
+
+        [TestMethod]
+        public void RemoveRoleFromUser()
+        {
+            var user = new UserAccount() { UserName = "Nasar" };
+
+            var resultUser = Sql.SelectQuery("select * from getuser(@UserName)", user);
+            var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+
+            var Roles = Sql.SelectQuery("select * from roles", user);
+            var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
+            manger.RemoveRolefromUser(selectedUser.Id, RoleList[0].Id);
         }
     }
 }

@@ -45,6 +45,29 @@ CREATE TABLE refreshtoken (
 	FOREIGN KEY (tokenid) REFERENCES tokenkey(id)
 );
 
+CREATE TABLE roles(
+	id SERIAL NOT NULL PRIMARY KEY,
+	name VARCHAR(50) NOT NULL DEFAULT 'NOT DEFINED'
+);
+
+CREATE TABLE useraccount_roles(
+	useraccountid INT NOT NULL,
+	rolesid INT NOT NULL,
+	PRIMARY KEY (useraccountid,rolesid),
+	CONSTRAINT user_role UNIQUE (useraccountid,rolesid),
+	FOREIGN KEY (useraccountid) REFERENCES useraccount(id),
+	FOREIGN KEY (rolesid) REFERENCES roles(id)
+);
+
+CREATE TABLE token_roles(
+	tokenid INT NOT NULL,
+	rolesid INT NOT NULL,
+	PRIMARY KEY (tokenid,rolesid),
+	CONSTRAINT token_role UNIQUE (tokenid,rolesid),
+	FOREIGN KEY (tokenid) REFERENCES tokenkey(id),
+	FOREIGN KEY (rolesid) REFERENCES roles(id)
+);
+
 /* Functions */
 
 CREATE OR REPLACE FUNCTION getuser(iusername VARCHAR(250))
@@ -103,6 +126,16 @@ AS $$
 	INSERT INTO refreshtoken (token, tokenid) VALUES(reftoken, tokenkey);
 $$
 LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE adduserrole(userkey INT, roleskey INT)
+AS $$ 
+	INSERT INTO useraccount_roles (useraccountid,rolesid) VALUES (userkey, roleskey);
+$$ LANGUAGE SQL;
+
+CREATE OR REPLACE PROCEDURE addtokenrole(tokenkey INT, roleskey INT)
+AS $$ 
+	INSERT INTO token_roles (tokenid,rolesid) VALUES (tokenkey, roleskey);
+$$ LANGUAGE SQL;
 
 /* Lock tracking Statments */
 
