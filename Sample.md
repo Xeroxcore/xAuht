@@ -43,7 +43,9 @@ following command.
 2. Run this command > dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
 ```
 
-And now add the following code to startup.
+And now add the following code to startup. please take note that this section only
+shows how to get the authentication working. Under no cercumstances should this
+be seen as secure code.
 
 ```csharp
 

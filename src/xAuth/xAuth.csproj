@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <PackageId>xAuth</PackageId>
-    <Version>1.4.0</Version>
+    <Version>1.4.2</Version>
     <Company>Xeroxcore</Company>
     <Title>xAuth</Title>
     <NeutralLanguage>en-US</NeutralLanguage>
