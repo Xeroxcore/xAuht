@@ -139,7 +139,7 @@ BEGIN
   IF lock > 2 THEN
     	call lockaccount(userid);
 	ELSE
-		call updateuserlockout(userid);
+		call failauthuser(userid);
 	END IF;
 END; 
 $$ 
@@ -154,7 +154,7 @@ BEGIN
   IF lock > 2 THEN
     	call locktoken(tokenid);
 	ELSE
-		call updatetokenlockout(tokenid);
+		call failauthtoken(tokenid);
 	END IF;
 END; 
 $$ 
@@ -163,19 +163,13 @@ LANGUAGE plpgsql;
 /*Unlock logic*/
 CREATE OR REPLACE PROCEDURE unlockaccount(userid INT) 
 AS $$
-BEGIN 
-	UPDATE useraccount SET lockout = 0, lockexpire = NOW() - INTERVAL '15 MINUTE' WHERE id = userid;
-END; 
-$$ 
-LANGUAGE SQL;
+	UPDATE useraccount SET lockout = 0, lockexpire = NOW() - INTERVAL '15 MINUTE' WHERE id = userid; 
+$$ LANGUAGE SQL;
 
 CREATE OR REPLACE PROCEDURE unlocktoken(key INT) 
-AS $$
-BEGIN 
-	UPDATE tokenkey SET lockout = 0, lockexpire = NOW() - INTERVAL '15 MINUTE' WHERE id = key;
-END; 
-$$ 
-LANGUAGE SQL;
+AS $$ 
+	UPDATE tokenkey SET lockout = 0, lockexpire = NOW() - INTERVAL '15 MINUTE' WHERE id = key; 
+$$ LANGUAGE SQL;
 
 /* updating lockout Statments */
 CREATE PROCEDURE failauthuser(key INT)

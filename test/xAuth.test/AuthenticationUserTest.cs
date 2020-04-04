@@ -12,10 +12,10 @@ namespace xAuth.test
     public class AuthenticationUserTest
     {
         private readonly IAuth Authentication = new UserAuth(
-            new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
+            new NpgSql("Server=127.0.0.1;port=5432;Database=testdb2;Uid=testuser;Pwd=helloworld"),
             new JwtGenerator("asdas1d31q51131#", "HS256"));
 
-        private readonly NpgSql Sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
+        private readonly NpgSql Sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb2;Uid=testuser;Pwd=helloworld");
 
         [TestMethod]
         public void AuthenticateUser()
@@ -50,7 +50,7 @@ namespace xAuth.test
                 };
                 Sql.AlterDataQuery("update useraccount set lockout = @LockOut, lockexpire = now() Where username = @UserName", user);
                 var token = Authentication.Authentiacte(user, "user", "localhost", null);
-                Assert.IsFalse(token.Token.Length > 10);
+                Assert.AreEqual("", token.Token);
             }
             catch (Exception error)
             {
@@ -64,7 +64,7 @@ namespace xAuth.test
             IUser user = new UserAccount()
             {
                 UserName = "Nasar2",
-                Password = "helloworld2",
+                Password = "asd",
             };
             Sql.AlterDataQuery("update useraccount set lockout = 2, lockexpire = now() Where username = @UserName", user);
             try
@@ -130,7 +130,7 @@ namespace xAuth.test
                 var LockedRefToken = new RefreshToken() { Token = auth.RefreshToken };
                 Sql.AlterDataQuery("update refreshtoken set used = true where token = @Token", LockedRefToken);
                 var result = Authentication.RefreshToken(auth.RefreshToken, "user", "localhost", null);
-                Assert.IsFalse(result.Token.Length > 3);
+                Assert.AreEqual("", result.Token);
             }
             catch (Exception error)
             {

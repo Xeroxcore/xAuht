@@ -116,13 +116,17 @@ namespace xAuth.test
         {
             var token = new TokenKey() { Token = "helloworld123key" };
 
-            var resultUser = Sql.SelectQuery("select * from gettoken(@Token)", token);
-            var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+            var resultToken = Sql.SelectQuery("select * from gettoken(@Token)", token);
+            var selectedToken = ObjectConverter.ConvertDataTableRowToObject<TokenKey>(resultToken, 0);
 
             var Roles = Sql.SelectQuery("select * from roles", token);
             var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
 
-            manger.addRoleToTokenKey(selectedUser.Id, RoleList[0].Id);
+            manger.addRoleToTokenKey(selectedToken.Id, RoleList[0].Id);
+            var selected = new { TokenId = selectedToken.Id, RoleId = RoleList[0].Id };
+            var result = Sql.SelectQuery("select * from token_roles where tokenid = @TokenId and rolesid = @RoleId", selected);
+
+            Assert.IsTrue("1" == result.Rows[0]["tokenid"].ToString() && "1" == result.Rows[0]["rolesid"].ToString());
         }
 
         [TestMethod]
@@ -151,12 +155,17 @@ namespace xAuth.test
         {
             var token = new TokenKey() { Token = "helloworld123key" };
 
-            var resultUser = Sql.SelectQuery("select * from gettoken(@Token)", token);
-            var selectedUser = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultUser, 0);
+            var resultToken = Sql.SelectQuery("select * from gettoken(@Token)", token);
+            var selectedToken = ObjectConverter.ConvertDataTableRowToObject<UserAccount>(resultToken, 0);
 
             var Roles = Sql.SelectQuery("select * from roles", token);
             var RoleList = ObjectConverter.ConvertDataTableToList<Role>(Roles);
-            manger.RemoveRolefromTokenKey(selectedUser.Id, RoleList[0].Id);
+            manger.RemoveRolefromTokenKey(selectedToken.Id, RoleList[0].Id);
+
+            var selected = new { TokenId = selectedToken.Id, RoleId = RoleList[0].Id };
+            var result = Sql.SelectQuery("select * from token_roles where tokenid = @TokenId and rolesid = @RoleId", selected);
+
+            Assert.IsTrue(result.Rows.Count == 0);
         }
     }
 }
