@@ -12,7 +12,7 @@ namespace xAuth
     {
         protected ISqlHelper Sql { get; }
         protected IJwtGenerator Jwt { get; }
-        public Auth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator)
+        public Auth(ISqlHelper sqlHandler, IJwtGenerator jwtGenerator)
         {
             if (sqlHandler == null)
                 ThrowException("sqlHandler is null");

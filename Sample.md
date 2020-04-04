@@ -69,6 +69,21 @@ be seen as secure code.
             });
 ```
 
+Register token as scoped or singleton
+
+```csharp
+            Services.AddScoped<IJwtGenerator, JwtGenerator>(ServiceProvider =>
+           { return new JwtGenerator("Yoursupermegasecretkey", "HS256"); }); // this secretkey must match your secretkey at addJwtBearer
+
+            Services.AddScoped<ISqlHelper, NpgSql>(ServiceProvider =>
+            {
+                return new NpgSql("your database connectionstring");
+            });
+
+            Services.AddScoped<TokenAuth>();
+            Services.AddScoped<UserAuth>();
+```
+
 ### Install the database
 
 For xAuth to function properly you will need to add or make sure that the database contains
@@ -82,8 +97,133 @@ on alternative SQL Databases.
 
 ### Tokenkey Authentication
 
+Sample Controller
+
+```csharp
+   [ApiController]
+    [Route("[controller]")]
+    public class ApiAuthController : ControllerBase
+    {
+        private IAuth Auth { get; }
+        public ApiAuthController(TokenAuth auth)
+            => Auth = auth;
+
+        [HttpPost]
+        public ActionResult Post([FromBody] TokenKey accessKey)
+        {
+
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (ModelState.IsValid)
+                    {
+                        var result = Auth.Authentiacte(accessKey, "token", "localhost", null);
+                        return Ok(result);
+                    }
+                    return Unauthorized();
+                }
+                return Unauthorized();
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+        }
+    }
+```
+
+Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODU5OTMyMjQsImlzcyI6ImxvY2FsaG9zdCIsImF1ZCI6InRva2VuIn0.T6wHg3tte-EgmfhWdeLLNaHspjleiL68uzkPgMOQLIg",
+  "tokenType": "Bearer",
+  "expiration": "UTC2020-04-04 9:40:24 AM",
+  "refreshToken": "+OAzOTJvHIz4RM5fDsD6d/TfSsRUywOpKGzPJJLO5Mo="
+}
+```
+
 ### User Authentication
+
+Sample controller
+
+```csharp
+  [ApiController]
+    [Route("[controller]")]
+    public class UserAuthController : ControllerBase
+    {
+        private IAuth Auth { get; }
+        public UserAuthController(UserAuth auth)
+            => Auth = auth;
+
+        [HttpPost]
+        public IActionResult Post([FromBody] UserAccount userAccount)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var result = Auth.Authentiacte(userAccount, "user", "localhost", null);
+                    return Ok(result);
+                }
+                return Unauthorized();
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+        }
+    }
+```
+
+Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODU5OTMyMjQsImlzcyI6ImxvY2FsaG9zdCIsImF1ZCI6InRva2VuIn0.T6wHg3tte-EgmfhWdeLLNaHspjleiL68uzkPgMOQLIg",
+  "tokenType": "Bearer",
+  "expiration": "UTC2020-04-04 9:40:24 AM",
+  "refreshToken": "+OAzOTJvHIz4RM5fDsD6d/TfSsRUywOpKGzPJJLO5Mo="
+}
+```
 
 ### Using RefreshToken
 
-### Adding and removing roles
+Sample Controller
+
+```csharp
+     [HttpPost]
+        [Route("[controller]/RefreshToken")]
+        public ActionResult RefreshToken([FromBody] RefreshToken token)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (ModelState.IsValid)
+                    {
+                        var result = Auth.RefreshToken(token.Token, "token", "localhost", null);
+                        return Ok(result);
+                    }
+                    return Unauthorized();
+                }
+                return Unauthorized();
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+        }
+```
+
+Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODU5OTMyMjQsImlzcyI6ImxvY2FsaG9zdCIsImF1ZCI6InRva2VuIn0.T6wHg3tte-EgmfhWdeLLNaHspjleiL68uzkPgMOQLIg",
+  "tokenType": "Bearer",
+  "expiration": "UTC2020-04-04 9:40:24 AM",
+  "refreshToken": "+OAzOTJvHIz4RM5fDsD6d/TfSsRUywOpKGzPJJLO5Mo="
+}
+```

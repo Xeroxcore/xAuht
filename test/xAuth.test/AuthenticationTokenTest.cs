@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Components;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using xAuth.Interface;
 using xSql;
