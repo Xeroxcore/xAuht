@@ -11,7 +11,8 @@ The following tools are required for the API to function please make sure that n
 are installed and if not, install them utilizing the provider's main pages.
 
 - [.Net Core](https://dotnet.microsoft.com/download/dotnet-core/3.0) - dotnet core 3 and greater
-- [Asp .Net Core JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer/) JWTBearer
+- [Asp .Net Core JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer/) - JWTBearer
+- [xSql](https://www.nuget.org/packages/xSql/) - xSql
 
 ## Installation
 
