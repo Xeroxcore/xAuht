@@ -12,10 +12,10 @@ namespace xAuth.test
     public class AuthenticationUserTest
     {
         private readonly IAuth Authentication = new UserAuth(
-            new NpgSql("Server=127.0.0.1;port=5432;Database=testdb2;Uid=testuser;Pwd=helloworld"),
+            new NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld"),
             new JwtGenerator("asdas1d31q51131#", "HS256"));
 
-        private readonly NpgSql Sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb2;Uid=testuser;Pwd=helloworld");
+        private readonly NpgSql Sql = new xSql.NpgSql("Server=127.0.0.1;port=5432;Database=testdb;Uid=testuser;Pwd=helloworld");
 
         [TestMethod]
         public void AuthenticateUser()
