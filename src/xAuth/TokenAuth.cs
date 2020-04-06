@@ -5,7 +5,7 @@ namespace xAuth
 {
     public class TokenAuth : Auth, IAuth
     {
-        public TokenAuth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator)
+        public TokenAuth(ISqlHelper sqlHandler, IJwtGenerator jwtGenerator)
         : base(sqlHandler, jwtGenerator) { }
 
         protected void FailedAuthentication(ILockout lockout)

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Security.Claims;
 using xAuth.Interface;
 using xSql.Interface;
 
@@ -7,7 +5,7 @@ namespace xAuth
 {
     public class UserAuth : Auth, IAuth
     {
-        public UserAuth(ISqlHelper sqlHandler, JwtGenerator jwtGenerator) : base(sqlHandler, jwtGenerator)
+        public UserAuth(ISqlHelper sqlHandler, IJwtGenerator jwtGenerator) : base(sqlHandler, jwtGenerator)
         { }
 
         private void FailedAuthentication(ILockout lockout)
