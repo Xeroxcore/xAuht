@@ -115,16 +115,12 @@ Sample Controller
 
             try
             {
-                if (ModelState.IsValid)
-                {
-                    if (ModelState.IsValid)
-                    {
-                        var result = Auth.Authentiacte(accessKey, "token", "localhost", null);
-                        return Ok(result);
-                    }
-                    return Unauthorized();
-                }
-                return Unauthorized();
+                  if (ModelState.IsValid)
+                  {
+                      var result = Auth.Authentiacte(accessKey, "token", "localhost", null);
+                      return Ok(result);
+                  }
+                  return Unauthorized();
             }
             catch
             {
@@ -200,16 +196,12 @@ Sample Controller
         {
             try
             {
-                if (ModelState.IsValid)
-                {
-                    if (ModelState.IsValid)
-                    {
-                        var result = Auth.RefreshToken(token.Token, "token", "localhost", null);
-                        return Ok(result);
-                    }
-                    return Unauthorized();
-                }
-                return Unauthorized();
+                 if (ModelState.IsValid)
+                 {
+                     var result = Auth.RefreshToken(token.Token, "token", "localhost", null);
+                     return Ok(result);
+                 }
+                 return Unauthorized();
             }
             catch
             {
